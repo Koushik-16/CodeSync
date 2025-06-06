@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from './routes/auth.route.js'
 import { connectDB } from "./lib/db.js";
 import {initializeSocket , getSocketInstance } from './socket/socket.js'
+import sessionRoute from './routes/session.route.js'
 import http from 'http';
 import path from 'path';
 
@@ -29,8 +30,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/auth", authRoutes);
-
-//app.use("/api/interview" , sessionRoute);
+app.use("/api/interview" , sessionRoute);
 
 // if (process.env.NODE_ENV === "production") {
 //   const buildPath = path.join(__dirname, "..", "frontend", "build");
