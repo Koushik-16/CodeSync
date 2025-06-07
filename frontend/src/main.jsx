@@ -6,7 +6,7 @@ import { AuthContextProvider } from './context/AuthContext.jsx'
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { BrowserRouter } from 'react-router-dom'
 import darkTheme from './Theme/theme.js'
-import { SocketProvider } from './context/Sockek.jsx'
+import { SocketProvider } from './context/Socket.jsx'
 
 createRoot(document.getElementById('root')).render(
     <BrowserRouter>

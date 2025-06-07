@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext.jsx';
 
@@ -8,6 +8,15 @@ export default function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { setAuthUser } = useAuthContext();
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Auto-dismiss error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(''), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -26,8 +35,8 @@ export default function Login() {
       if(data?._id) {
         localStorage.setItem("CodeSync_token", JSON.stringify(data));
         setAuthUser(data);
-         navigate('/');
-      }else {
+        navigate('/');
+      } else {
         setError('Login failed');
       }
     } catch (err) {
@@ -35,17 +44,20 @@ export default function Login() {
     }
   };
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log({ email, password });
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
       <div className="w-full max-w-md bg-gray-800 text-white rounded-2xl p-8 shadow-xl">
         <h2 className="text-3xl font-bold mb-6 text-center">Welcome Back</h2>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4">
+            <div className="bg-red-600 text-white px-4 py-3 rounded shadow text-center font-semibold">
+              {error}
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="block text-sm mb-1" htmlFor="email">Email</label>

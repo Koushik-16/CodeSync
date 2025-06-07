@@ -6,17 +6,20 @@ import "./App.css"
 import Navbar from './components/Navbar'
 import { useAuthContext } from './context/AuthContext'
 import Signup from './components/Signup'
+import Interview from './components/Interview'
 
 function App() {
 	const auth = useAuthContext();
   const authUser = auth?.authUser;
 	return (
 		<div>
-		  <Navbar />
+		 <Navbar />
 			<Routes>
 				<Route path='/' element={authUser ? <Home /> : <Navigate to={"/login"} />} />
 				<Route path='/login' element={authUser ? <Navigate to='/' /> : <Login />} />
 				<Route path='/signup' element={authUser ? <Navigate to='/' /> : <Signup />} />
+				<Route path='/interview/sessions/:code' element={authUser ? <Interview /> : <Navigate to={"/login"} />} />
+				<Route path='*' element={<Navigate to={"/login"} />} />
 			</Routes>
 		
 		</div>

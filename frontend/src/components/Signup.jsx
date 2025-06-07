@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext'; // adjust path as needed
 import { Link } from 'react-router-dom';
@@ -12,7 +12,15 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
-  const { setAuthUser } = useAuthContext(); // assuming context provides setAuthUser
+  const { setAuthUser } = useAuthContext();
+
+  // Auto-dismiss error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(''), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,24 +31,21 @@ const Signup = () => {
       return;
     }
 
-    
     try {
       const res = await fetch("http://localhost:5000/api/auth/signup", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ username, email, password }),
-				credentials : 'include',
-			});
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+        credentials : 'include',
+      });
 
-			const data = await res.json();
-            console.log(data);
-			if (data.error) {
-				throw new Error(data.error);
-			}
-			localStorage.setItem("CodeSync_token", JSON.stringify(data));
-			setAuthUser(data);
-            navigate("/");
-     
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      localStorage.setItem("CodeSync_token", JSON.stringify(data));
+      setAuthUser(data);
+      navigate("/");
     } catch (err) {
       setError('Registration failed. Please try again.');
     }
@@ -51,8 +56,13 @@ const Signup = () => {
       <div className="w-full max-w-md bg-gray-800 text-white rounded-2xl p-8 shadow-xl">
         <h2 className="text-3xl font-bold mb-6 text-center">Create an Account</h2>
 
+        {/* Error Message */}
         {error && (
-          <p className="text-red-400 mb-4 text-sm text-center">{error}</p>
+          <div className="mb-4">
+            <div className="bg-red-600 text-white px-4 py-3 rounded shadow text-center font-semibold">
+              {error}
+            </div>
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">

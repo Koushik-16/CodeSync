@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.post("/sessions" , protectRoute , createSession);
 router.post("/sessions/:code" , protectRoute , joinSession);
-router.post("/sessions/:code/delete" , protectRoute , endInterview);
+router.post("/sessions/:code/end" , protectRoute , endInterview);
 
 export default router;

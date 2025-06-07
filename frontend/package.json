@@ -15,12 +15,17 @@
     "@monaco-editor/react": "^4.7.0",
     "@mui/material": "^7.1.1",
     "@tailwindcss/vite": "^4.1.8",
+    "axios": "^1.9.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-resizable": "^3.0.5",
     "react-router-dom": "^7.6.2",
     "socket.io-client": "^4.8.1",
     "tailwindcss": "^4.1.8",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "y-monaco": "^0.1.6",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.27"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
