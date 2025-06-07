@@ -85,7 +85,7 @@ const initializeSocket = (server) => {
               },
               { upsert: true }
             );
-            console.log(`💾 Saved document for sessionId ${sessionId}`);
+            // console.log(`💾 Saved document for sessionId ${sessionId}`);
           } catch (err) {
             console.error("Error saving document:", err);
             socket.emit("error", { message: "Failed to save document." });
@@ -97,6 +97,41 @@ const initializeSocket = (server) => {
         socket.emit("error", { message: "Internal server error in join-session." });
       }
     });
+
+
+    socket.on('change-language', ({ sessionId, language }) => {
+  // Broadcast to others
+  socket.to(sessionId).emit('language-changed', { language });
+});
+
+socket.on('clear-code', async ({ sessionId }) => {
+  // Clear Yjs doc in memory
+  const session = sessionDocs[sessionId];
+  if (session && session.doc) {
+    const yText = session.doc.getText('monaco');
+    yText.delete(0, yText.length);
+
+    // Save empty code to DB
+    try {
+      const SessionModel = await Session.findOne({ sessionCode: sessionId });
+      if (SessionModel) {
+        const fullUpdate = Y.encodeStateAsUpdate(session.doc);
+        const base64 = base64Encode(fullUpdate);
+        await CodeSnippet.findOneAndUpdate(
+          { sessionId: SessionModel._id },
+          { code: { update: base64 }, lastUpdated: new Date() },
+          { upsert: true }
+        );
+      }
+    } catch (err) {
+      console.error('Error clearing code in DB:', err);
+    }
+  }
+
+  // Notify all clients to clear code
+  io.to(sessionId).emit('clear-code');
+});
+
 
     /**
      * Disconnect Logic

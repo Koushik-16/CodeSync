@@ -70,6 +70,40 @@ const CodeEditor = () => {
     };
   }, [dragging]);
 
+ const handleLanguageChange = (e) => {
+  const newLang = e.target.value;
+  setLanguage(newLang);
+  socket.emit('change-language', { sessionId: code, language: newLang });
+  // Emit code clear event
+  socket.emit('clear-code', { sessionId: code });
+};
+
+
+useEffect(() => {
+  if (!socket || !code) return;
+
+  const handleLanguage = ({ language }) => {
+    setLanguage(language);
+  };
+
+  const handleClearCode = () => {
+    // Clear Yjs doc for all users
+    if (ydocRef.current && yTextRef.current) {
+      yTextRef.current.delete(0, yTextRef.current.length);
+    }
+  };
+
+  socket.on('language-changed', handleLanguage);
+  socket.on('clear-code', handleClearCode);
+
+  return () => {
+    socket.off('language-changed', handleLanguage);
+    socket.off('clear-code', handleClearCode);
+  };
+}, [socket, code]);
+
+
+
   // Yjs + Monaco + Socket.io collaborative logic
   useEffect(() => {
     if (!socket || !editorReady || !authUser || !code) return;
@@ -147,7 +181,7 @@ const CodeEditor = () => {
         <div className="flex flex-wrap gap-4 items-center">
           <Select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={handleLanguageChange}
             variant="outlined"
             size="small"
             sx={{
