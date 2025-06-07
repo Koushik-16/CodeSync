@@ -36,6 +36,15 @@ const initializeSocket = (server) => {
         socket.join(sessionId);
         console.log(`User ${authUser?._id || "unknown"} joined session: ${sessionId}`);
 
+        if (!session.participants.includes(authUser._id)) {
+          session.participants.push(authUser._id);
+          await session.save();
+         // console.log("User added to session");
+
+        } else {
+          //console.log("User already a part of the session");
+        }
+
         // 2. Load or initialize Y.Doc for this session
         if (!sessionDocs[sessionId]) {
           const ydoc = new Y.Doc();
@@ -139,6 +148,17 @@ socket.on('clear-code', async ({ sessionId }) => {
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.id}`);
       // Optionally: Clean up sessionDocs if no users left in a session
+      socket.rooms.forEach((room) => {
+    // Skip the socket's own room
+    if (room === socket.id) return;
+
+    // Check if the room is now empty
+    const roomSize = io.sockets.adapter.rooms.get(room)?.size || 0;
+    if (roomSize === 0) {
+      delete sessionDocs[room];
+      console.log(`Deleted sessionDocs for session ${room} (room is empty)`);
+    }
+  });
     });
 
     // Global error handler for unexpected errors

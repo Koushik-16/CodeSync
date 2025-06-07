@@ -27,6 +27,7 @@ const CodeEditor = () => {
   const { socket } = useSocket();
   const { authUser } = useAuthContext();
   const { code } = useParams(); // session id
+  const [copied, setCopied] = useState(false);
   const ydocRef = useRef(null);
   const yTextRef = useRef(null);
   const monacoBindingRef = useRef(null);
@@ -53,6 +54,14 @@ const CodeEditor = () => {
       setOutputHeight(newOutputHeight);
     }
   };
+  
+ //handle copy to clipboard
+  const handleCopy = () => {
+  navigator.clipboard.writeText(code);
+  setCopied(true);
+  setTimeout(() => setCopied(false), 1500);
+}; 
+
 
   // Editor mount handler
   const handleEditorDidMount = (editor) => {
@@ -170,11 +179,25 @@ useEffect(() => {
   }, [socket, editorReady, authUser, code]);
 
   // Layout
-  const totalHeight = `calc(90vh - ${NAVBAR_HEIGHT}px)`;
+  const totalHeight = `calc(85vh - ${NAVBAR_HEIGHT}px)`;
   const editorHeight = `calc(100vh - ${NAVBAR_HEIGHT}px - ${outputHeight}px)`;
 
   return (
     <div className="bg-[#0f111a] text-white px-4 pt-20 overflow-hidden">
+     <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-mono bg-gray-800 px-3 py-1 rounded text-blue-300">
+          Session ID: {code}
+        </span>
+        <button
+          onClick={handleCopy}
+          className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition"
+        >
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
+    </div>
+
       {/* Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
         <div className="text-2xl font-bold text-blue-400">CodeSync</div>
