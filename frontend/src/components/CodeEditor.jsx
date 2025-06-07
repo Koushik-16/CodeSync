@@ -6,6 +6,8 @@ import { useAuthContext } from '../context/AuthContext';
 import { useParams } from 'react-router-dom';
 import * as Y from 'yjs';
 import { MonacoBinding } from 'y-monaco';
+import axios from 'axios';
+
 
 const languageOptions = [
   { label: 'JavaScript', value: 'javascript' },
@@ -16,7 +18,7 @@ const languageOptions = [
 
 const NAVBAR_HEIGHT = 80;
 
-const CodeEditor = () => {
+const CodeEditor = ({remoteUser}) => {
   const editorRef = useRef(null);
   const [language, setLanguage] = useState('javascript');
   const [output, setOutput] = useState('');
@@ -24,6 +26,8 @@ const CodeEditor = () => {
   const [outputHeight, setOutputHeight] = useState(200);
   const [dragging, setDragging] = useState(false);
   const [editorReady, setEditorReady] = useState(false); // NEW
+  const [codeError , setCodeError] = useState('');
+  const [iscodeRunning , setIsCodeRunning] = useState(false);
   const { socket } = useSocket();
   const { authUser } = useAuthContext();
   const { code } = useParams(); // session id
@@ -31,9 +35,60 @@ const CodeEditor = () => {
   const ydocRef = useRef(null);
   const yTextRef = useRef(null);
   const monacoBindingRef = useRef(null);
+  const sessionId = code || 'null'; // Fallback session ID
 
   // Run code stub
-  const runCode = () => {};
+  const runCode = async () => {
+    if(!editorRef.current) return;
+    const code = editorRef.current.getValue();
+    const version = "*";
+    setCodeError(''); // Clear previous errors
+    setOutput("");
+    setIsCodeRunning(true);
+    try {
+      const response = await axios.post("https://emkc.org/api/v2/piston/execute", {
+      language,
+      version,
+      files: [
+        {
+          name: "main",
+          content: code,
+        },
+      ],
+      
+    });
+
+     const { run } = response.data;
+    setIsCodeRunning(false);
+
+    if (run.stderr) {
+      setCodeError(true); // assuming you have a state to show output
+      setOutput(run.stderr);
+      sendOutputToServer(sessionId, run.stderr , true);
+    } else {
+      setOutput(run.stdout);
+      sendOutputToServer(sessionId, run.stdout , false);
+    }
+
+
+    } catch (error) {
+       console.error("Error running code:", error);
+    setOutput("Failed to execute code.");
+    }
+
+  };
+
+  const sendOutputToServer = (code, output , hasError) => {
+    if (!socket || !code || !authUser) return;
+
+    const outputData = {
+      sessionId: code,
+      output,
+      hasError 
+    };
+
+    socket.emit('code-output', outputData);
+  }
 
   // Dragging for output resize
   const startDragging = () => {
@@ -85,6 +140,8 @@ const CodeEditor = () => {
   socket.emit('change-language', { sessionId: code, language: newLang });
   // Emit code clear event
   socket.emit('clear-code', { sessionId: code });
+  setOutput("");
+  sendOutputToServer(sessionId , "" , false)
 };
 
 
@@ -104,6 +161,7 @@ useEffect(() => {
 
   socket.on('language-changed', handleLanguage);
   socket.on('clear-code', handleClearCode);
+ 
 
   return () => {
     socket.off('language-changed', handleLanguage);
@@ -178,6 +236,21 @@ useEffect(() => {
     };
   }, [socket, editorReady, authUser, code]);
 
+
+  useEffect(() => {
+    if (!socket || !code) return; 
+
+    const updateOutput = ({output , hasError}) => {
+       setOutput(output);
+       setCodeError(hasError);
+    }
+    socket.on('code-output', updateOutput);
+
+    return () => {
+      socket.off('code-output', updateOutput);
+    };
+  } , [socket, code]);
+
   // Layout
   const totalHeight = `calc(85vh - ${NAVBAR_HEIGHT}px)`;
   const editorHeight = `calc(100vh - ${NAVBAR_HEIGHT}px - ${outputHeight}px)`;
@@ -189,18 +262,24 @@ useEffect(() => {
         <span className="text-sm font-mono bg-gray-800 px-3 py-1 rounded text-blue-300">
           Session ID: {code}
         </span>
+         
         <button
           onClick={handleCopy}
           className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition"
         >
           {copied ? "Copied!" : "Copy"}
+          
         </button>
+        
       </div>
     </div>
 
       {/* Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
         <div className="text-2xl font-bold text-blue-400">CodeSync</div>
+        {remoteUser  && 
+          <span className="text-sm font-mono bg-gray-800 px-3 py-1 rounded text-green-400">you are connected to {remoteUser}</span>
+          } 
         <div className="flex flex-wrap gap-4 items-center">
           <Select
             value={language}
@@ -235,9 +314,10 @@ useEffect(() => {
           </div>
           <button
             onClick={runCode}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+            disabled = {iscodeRunning}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md "
           >
-            Run Code
+           {iscodeRunning ? "Running..." : "Run Code"}
           </button>
         </div>
       </div>
@@ -267,8 +347,8 @@ useEffect(() => {
           className="bg-[#1e1e2e] text-green-400 p-4 overflow-auto border-t border-gray-700"
           style={{ height: `${outputHeight}px` }}
         >
-          <h2 className="text-lg font-semibold mb-2 text-white">Output</h2>
-          <pre>{output}</pre>
+          <h2 className="text-lg font-semibold mb-2 text-white ${}">Output</h2>
+          <pre className= {codeError ? "text-red-600" : "text-green-600"}>{output}</pre>
         </div>
       </div>
     </div>

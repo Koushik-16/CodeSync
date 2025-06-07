@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import Session from "../models/session.model.js";
 import CodeSnippet from "../models/code.model.js";
+import User from "../models/user.model.js";
 import * as Y from "yjs";
 import { encode as base64Encode, decode as base64Decode } from 'base64-arraybuffer';
 
@@ -44,6 +45,34 @@ const initializeSocket = (server) => {
         } else {
           //console.log("User already a part of the session");
         }
+
+
+
+        const socketsInRoom = await io.in(sessionId).fetchSockets();
+         if(socketsInRoom.length === 2) {
+
+       const host = await User.findById(session.host)
+      // console.log("Host User", host._id.toString());
+       const otherId = session.participants.filter((id) => id !== session.host.toString());
+       const otherUser = await User.findById(otherId).select('-password');
+      //console.log("Other User", otherUser);
+    
+    //  console.log("Sockets in room:", socketsInRoom.map(s => s.id));
+      const otherSocket = socketsInRoom.find(s => s.id !== socket.id);
+    
+       if(authUser._id.toString() === host._id.toString()) {
+        socket.broadcast.to(sessionId).emit("user-connected" , {remoteUser : host.username ,  remoteSocketId : socket.id});
+        socket.emit("user-connected" , {remoteUser :otherUser.username  , remoteSocketId : otherSocket?.id});
+       }else {
+       
+       socket.broadcast.to(sessionId).emit("user-connected" , {remoteUser : otherUser.username ,  remoteSocketId : socket.id});
+       socket.emit("user-connected" , {remoteUser :host.username  , remoteSocketId : otherSocket?.id});
+       }
+
+       }
+
+
+
 
         // 2. Load or initialize Y.Doc for this session
         if (!sessionDocs[sessionId]) {
@@ -140,6 +169,13 @@ socket.on('clear-code', async ({ sessionId }) => {
   // Notify all clients to clear code
   io.to(sessionId).emit('clear-code');
 });
+
+
+
+  socket.on("code-output" , ({ sessionId, output , hasError }) => {
+   console.log(hasError, "hasError");
+      socket.to(sessionId).emit("code-output", { output , hasError});
+  });
 
 
     /**

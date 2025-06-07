@@ -3,6 +3,7 @@ import { useSocket } from '../context/Socket.jsx';
 import { useAuthContext } from '../context/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Footer from './Footer.jsx';
 
 const Home = () => {
   const { authUser, setAuthUser } = useAuthContext();
@@ -64,6 +65,7 @@ const Home = () => {
   };
 
   return (
+    <>
     <div className="pt-20 min-h-screen bg-gray-950 text-white px-4">
       {/* Error Message */}
       {error && (
@@ -120,6 +122,8 @@ const Home = () => {
         </div>
       </section>
     </div>
+    
+    </>
   );
 };
 

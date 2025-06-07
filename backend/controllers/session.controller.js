@@ -1,7 +1,8 @@
 import CodeSnippet from "../models/code.model.js";
 import Session from "../models/session.model.js";
 import {v4 as uuidv4} from 'uuid';
-import mongoose from 'mongoose';
+import mongoose, { get } from 'mongoose';
+import { getSocketInstance } from "../socket/socket.js";
 
 
 export const createSession = async(req , res) => {
@@ -54,8 +55,11 @@ export const joinSession = async(req , res) => {
         // Check if the session exists
         const session = await Session.findOne({ sessionCode });
         if (!session) return res.status(404).json({ error: 'Session not found' });
+        const io = getSocketInstance();
 
-        if(session.participants.length === 2) {
+        const socketsInRoom = await io.in(sessionCode).fetchSockets();
+
+         if(socketsInRoom.length === 2) {
             return res.status(400).json({ error: 'Session is already full' });
         }
         
