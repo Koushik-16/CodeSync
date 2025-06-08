@@ -113,14 +113,14 @@ const Home = () => {
           </button>
         </div>
 
-        {/* Card 3: Schedule Interview */}
+        {/* Card 3: Schedule Interview
         <div className="bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-blue-500/30 transition duration-300">
           <h2 className="text-xl font-semibold mb-4 text-blue-400">Schedule Interview</h2>
           <p className="text-gray-300 mb-6">Set a date and time to schedule interviews in advance.</p>
           <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-white font-medium w-full">
             Schedule Interview
           </button>
-        </div>
+        </div> */}
       </section>
     </div>
     
