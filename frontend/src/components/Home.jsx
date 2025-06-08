@@ -3,7 +3,6 @@ import { useSocket } from '../context/Socket.jsx';
 import { useAuthContext } from '../context/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Footer from './Footer.jsx';
 
 const Home = () => {
   const { authUser, setAuthUser } = useAuthContext();

@@ -4,31 +4,34 @@ import { useEffect , useState } from 'react';
 import { useSocket } from '../context/Socket.jsx';
 import { useParams } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext.jsx';
-import Footer from './Footer.jsx';
 
 const Interview = () => {
-  const [remoteUser , setRemoteUser] = useState(null);
-  const [remoteSocketId , setRemoteSocketId] = useState(null);
   const { socket } = useSocket();
-  const { sessionCode } = useParams();
-  const {authUser} = useAuthContext();
+    const { authUser } = useAuthContext();
+    const { sessionCode } = useParams();
+    
+    // State to manage remote user and socket ID
 
+  const [remoteUser , setRemoteUser] = useState(null);
+    const [remoteSocketId , setRemoteSocketId] = useState(null);
 
   useEffect(() => {
-    if (!socket) return;
-    socket.on('user-connected', ({ remoteUser, remoteSocketId }) => {
-      setRemoteUser(remoteUser);
-      setRemoteSocketId(remoteSocketId);
-    });
+        if (!socket) return;
+        socket.on('user-connected', ({ remoteUser, remoteSocketId }) => {
+          setRemoteUser(remoteUser);
+          setRemoteSocketId(remoteSocketId);
+        });
+    
+        return () => {
+          socket.off('user-connected');
+        };
+      }, [socket]);
 
-    return () => {
-      socket.off('user-connected');
-    };
-  }, [socket]);
+  
  
   return (
     <div>
-     <Editor remoteUser = {remoteUser} />
+     <Editor remoteUser = {remoteUser}  />
      
     </div>
   )

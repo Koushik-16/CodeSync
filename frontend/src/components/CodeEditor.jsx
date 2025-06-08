@@ -28,6 +28,7 @@ const CodeEditor = ({remoteUser}) => {
   const [editorReady, setEditorReady] = useState(false); // NEW
   const [codeError , setCodeError] = useState('');
   const [iscodeRunning , setIsCodeRunning] = useState(false);
+  
   const { socket } = useSocket();
   const { authUser } = useAuthContext();
   const { code } = useParams(); // session id
@@ -78,11 +79,11 @@ const CodeEditor = ({remoteUser}) => {
 
   };
 
-  const sendOutputToServer = (code, output , hasError) => {
-    if (!socket || !code || !authUser) return;
+  const sendOutputToServer = (sessionId, output , hasError) => {
+    if (!socket || !sessionId || !authUser) return;
 
     const outputData = {
-      sessionId: code,
+      sessionId: sessionId,
       output,
       hasError 
     };
@@ -112,7 +113,7 @@ const CodeEditor = ({remoteUser}) => {
   
  //handle copy to clipboard
   const handleCopy = () => {
-  navigator.clipboard.writeText(code);
+  navigator.clipboard.writeText(sessionId);
   setCopied(true);
   setTimeout(() => setCopied(false), 1500);
 }; 
@@ -123,6 +124,8 @@ const CodeEditor = ({remoteUser}) => {
     editorRef.current = editor;
     setEditorReady(true);
   };
+
+  
 
   // Output resize listeners
   useEffect(() => {
@@ -137,16 +140,16 @@ const CodeEditor = ({remoteUser}) => {
  const handleLanguageChange = (e) => {
   const newLang = e.target.value;
   setLanguage(newLang);
-  socket.emit('change-language', { sessionId: code, language: newLang });
+  socket.emit('change-language', {  sessionId, language: newLang });
   // Emit code clear event
-  socket.emit('clear-code', { sessionId: code });
+  socket.emit('clear-code', {  sessionId });
   setOutput("");
   sendOutputToServer(sessionId , "" , false)
 };
 
 
 useEffect(() => {
-  if (!socket || !code) return;
+  if (!socket || !sessionId) return;
 
   const handleLanguage = ({ language }) => {
     setLanguage(language);
@@ -167,13 +170,13 @@ useEffect(() => {
     socket.off('language-changed', handleLanguage);
     socket.off('clear-code', handleClearCode);
   };
-}, [socket, code]);
+}, [socket, sessionId]);
 
 
 
   // Yjs + Monaco + Socket.io collaborative logic
   useEffect(() => {
-    if (!socket || !editorReady || !authUser || !code) return;
+    if (!socket || !editorReady || !authUser || !sessionId) return;
 
     const editor = editorRef.current;
     if (!editor) return;
@@ -185,7 +188,15 @@ useEffect(() => {
     yTextRef.current = yText;
 
     // 2. Join session and request document state
-    socket.emit('join-session', { sessionId: code, authUser });
+    socket.emit('join-session', { sessionId , authUser  });
+    socket.on('language-changed', ({ language }) => {
+  setLanguage(language);
+});
+
+socket.emit('get-language', { sessionId }, (languageFromServer) => {
+  if (languageFromServer) setLanguage(languageFromServer);
+});
+
 
     // 3. Receive initial document state from server
     const handleInitialDoc = (updateArray) => {
@@ -228,17 +239,18 @@ useEffect(() => {
       ydoc.off('update', onUpdate);
       socket.off('yjs-update', handleRemoteUpdate);
       socket.off('yjs-update', handleInitialDoc);
+      socket.off('language-changed');
       clearInterval(saveInterval);
       if (monacoBindingRef.current) {
         monacoBindingRef.current.destroy();
         monacoBindingRef.current = null;
       }
     };
-  }, [socket, editorReady, authUser, code]);
+  }, [socket, editorReady, authUser, sessionId]);
 
 
   useEffect(() => {
-    if (!socket || !code) return; 
+    if (!socket || !sessionId) return; 
 
     const updateOutput = ({output , hasError}) => {
        setOutput(output);
@@ -249,7 +261,7 @@ useEffect(() => {
     return () => {
       socket.off('code-output', updateOutput);
     };
-  } , [socket, code]);
+  } , [socket, sessionId]);
 
   // Layout
   const totalHeight = `calc(85vh - ${NAVBAR_HEIGHT}px)`;
@@ -260,7 +272,7 @@ useEffect(() => {
      <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
         <span className="text-sm font-mono bg-gray-800 px-3 py-1 rounded text-blue-300">
-          Session ID: {code}
+          Session ID: {sessionId}
         </span>
          
         <button
@@ -331,7 +343,7 @@ useEffect(() => {
           <Editor
             height="100%"
             language={language}
-            defaultValue="// Write your code here"
+            defaultValue="// Loading..."
             theme="vs-dark"
             onMount={handleEditorDidMount}
             options={{ fontSize }}

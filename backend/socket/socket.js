@@ -137,10 +137,41 @@ const initializeSocket = (server) => {
     });
 
 
-    socket.on('change-language', ({ sessionId, language }) => {
+    socket.on('change-language', async ({ sessionId, language }) => {
   // Broadcast to others
-  socket.to(sessionId).emit('language-changed', { language });
+ try {
+    socket.to(sessionId).emit('language-changed', { language });
+
+    const session = await Session.findOne({ sessionCode: sessionId });
+    if (!session) return;
+
+    await CodeSnippet.findOneAndUpdate(
+      { sessionId: session._id },
+      { language },
+      { upsert: true }
+    );
+  } catch (err) {
+    console.error("Error saving language:", err);
+  }
 });
+
+socket.on('get-language', async ({ sessionId }, callback) => {
+  try {
+    const session = await Session.findOne({ sessionCode: sessionId });
+    if (!session) return callback(null);
+
+    const snippet = await CodeSnippet.findOne({ sessionId: session._id });
+    if (snippet?.language) {
+      callback(snippet.language);
+    } else {
+      callback('javascript'); // default fallback
+    }
+  } catch (err) {
+    console.error("Error getting language:", err);
+    callback(null);
+  }
+});
+
 
 socket.on('clear-code', async ({ sessionId }) => {
   // Clear Yjs doc in memory
