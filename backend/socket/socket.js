@@ -233,7 +233,6 @@ socket.on('clear-code', async ({ sessionId }) => {
       console.error("Socket error:", err);
     });
   });
-
   return io;
 };
 
