@@ -7,8 +7,9 @@ import { useAuthContext } from '../context/AuthContext.jsx';
 
 const Interview = () => {
   const { socket } = useSocket();
-    const { authUser } = useAuthContext();
-    const { sessionCode } = useParams();
+  const { sessionCode } = useParams();
+  const {authUser} = useAuthContext();
+  // console.log("Auth User in Interview", authUser);
     
     // State to manage remote user and socket ID
 
