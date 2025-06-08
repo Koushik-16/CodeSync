@@ -11,7 +11,7 @@ const Home = () => {
   const [error, setError] = useState('');
   const { socket } = useSocket();
 
-  const baseURL = import.meta.env.MODE === "development" ? 'http://localhost:5000' : "/";
+  const baseURL = import.meta.env.MODE === "development" ? 'http://localhost:5000/' : "/";
 
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const Home = () => {
     setError(''); // Clear previous error
     try {
       const response = await axios.post(
-        `${baseURL}/api/interview/sessions`,
+        `${baseURL}api/interview/sessions`,
         {},
         { withCredentials: true }
       );
@@ -47,7 +47,7 @@ const Home = () => {
     setError(''); // Clear previous error
     try {
       const response = await axios.post(
-        `${baseURL}/api/interview/sessions/${sessionCode}`,
+        `${baseURL}api/interview/sessions/${sessionCode}`,
         { sessionCode },
         { withCredentials: true }
       );
@@ -84,7 +84,7 @@ const Home = () => {
       </section>
 
       {/* Cards Section */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
         {/* Card 1: Create Interview */}
         <div className="bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-blue-500/30 transition duration-300">
           <h2 className="text-xl font-semibold mb-4 text-blue-400">Create New Interview</h2>

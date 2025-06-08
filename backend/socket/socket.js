@@ -35,7 +35,7 @@ const initializeSocket = (server) => {
         }
 
         socket.join(sessionId);
-        console.log(`User ${authUser?._id || "unknown"} joined session: ${sessionId}`);
+       // console.log(`User ${authUser?._id || "unknown"} joined session: ${sessionId}`);
 
         if (!session.participants.includes(authUser._id)) {
           session.participants.push(authUser._id);

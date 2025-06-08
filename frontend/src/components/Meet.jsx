@@ -25,7 +25,7 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
   
 
 
-  const baseURL = import.meta.env.MODE === "development" ? 'http://localhost:5000' : "/";
+  const baseURL = import.meta.env.MODE === "development" ? 'http://localhost:5000/' : "/";
 
   const sendStreams = useCallback(() => {
     if (!myStream || !remoteSocketId) return;
@@ -151,7 +151,7 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
     myStream?.getTracks().forEach((track) => track.stop());
     peer.resetPeer();
     socket.emit('session-ended', { code: sessionCode });
-    await axios.post(`${baseURL}/api/interview/sessions/${sessionCode}/end`, { sessionCode }, { withCredentials: true });
+    await axios.post(`${baseURL}api/interview/sessions/${sessionCode}/end`, { sessionCode }, { withCredentials: true });
     navigate('/', { replace: true });
   };
 

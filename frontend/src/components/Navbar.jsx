@@ -10,7 +10,7 @@ const Navbar = () => {
   const handleLogout = () => {
     setAuthUser(null); // Clear auth state
     localStorage.removeItem('authUser'); // If you're using localStorage
-    navigate('/login');
+    navigate('/login' , {replace : true});
   };
 
   return (
