@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react';
+import { useRef } from 'react';
 import { useSocket } from '../context/Socket';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ReactPlayer from 'react-player';
@@ -6,7 +7,7 @@ import peer from '../service/peer';
 import axios from 'axios';
 import { useAuthContext } from '../context/AuthContext';
 
-const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId}) => {
+const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId , leftWidth}) => {
   const { socket } = useSocket();
   const {   code } = useParams();
   const { authUser } = useAuthContext();
@@ -21,6 +22,11 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId}
   const [streamsSent, setStreamsSent] = useState(false);
   const [called, setCalled] = useState(false);
 
+  
+
+
+  const baseURL = import.meta.env.MODE === "development" ? 'http://localhost:5000' : "/";
+
   const sendStreams = useCallback(() => {
     if (!myStream || !remoteSocketId) return;
     for (const track of myStream.getTracks()) {
@@ -28,6 +34,7 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId}
     }
     setStreamsSent(true);
   }, [myStream, remoteSocketId]);
+  
 
   const handleAcceptCall = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
@@ -112,11 +119,39 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId}
     return () => peer.peer.removeEventListener('track', handleTrack);
   }, []);
 
+
+  useEffect(() => {
+  if (!socket) return;
+
+  socket.on('session-ended', () => {
+    alert('Host ended the session');
+
+    myStream?.getTracks().forEach((track) => track.stop());
+    peer.resetPeer();
+      setCalled(false);
+      setIncommingCall(false);
+      setRemoteUser(null);
+      setRemoteStream(null);
+      setMyStream(null);
+      setRemoteSocketId(null);
+      setStreamsSent(false);
+      setRemoteOffer(null);
+      setRemoteUser(null);
+
+    navigate('/', { replace: true });
+  });
+
+  return () => {
+    socket.off('session-ended');
+  };
+}, [socket, myStream, navigate]);
+
+
   const handleEndSession = async () => {
     myStream?.getTracks().forEach((track) => track.stop());
     peer.resetPeer();
     socket.emit('session-ended', { code: sessionCode });
-    await axios.post(`http://localhost:5000/api/interview/sessions/${sessionCode}/end`, { sessionCode }, { withCredentials: true });
+    await axios.post(`${baseURL}/api/interview/sessions/${sessionCode}/end`, { sessionCode }, { withCredentials: true });
     navigate('/', { replace: true });
   };
 
@@ -151,21 +186,38 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId}
           {RemoteUser ? `Connected to: ${RemoteUser}` : 'Not connected to anyone'}
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {myStream && (
-            <div className="bg-gray-700 p-4 rounded">
-              <h3 className="text-lg mb-2">My Stream</h3>
-              <ReactPlayer playing muted height="200px" width="100%" url={myStream} />
-            </div>
-          )}
+       <div className={`flex ${leftWidth && leftWidth < 600 ? 'flex-col' : 'flex-row'}  gap-6`}>
+  {myStream && (
+    <div className="flex-1 bg-gray-700 p-4 rounded">
+      <h3 className="text-lg mb-2">My Stream</h3>
+      <div className="relative w-full aspect-video">
+        <ReactPlayer
+          playing
+          muted
+          url={myStream}
+          width="100%"
+          height="100%"
+          style={{ position: 'absolute', top: 0, left: 0 }}
+        />
+      </div>
+    </div>
+  )}
 
-          {remoteStream && (
-            <div className="bg-gray-700 p-4 rounded">
-              <h3 className="text-lg mb-2">Remote Stream</h3>
-              <ReactPlayer playing height="200px" width="100%" url={remoteStream} />
-            </div>
-          )}
-        </div>
+  {remoteStream && (
+    <div className="flex-1 bg-gray-700 p-4 rounded">
+      <h3 className="text-lg mb-2">Remote Stream</h3>
+      <div className="relative w-full aspect-video">
+        <ReactPlayer
+          playing
+          url={remoteStream}
+          width="100%"
+          height="100%"
+          style={{ position: 'absolute', top: 0, left: 0 }}
+        />
+      </div>
+    </div>
+  )}
+</div>
 
         <div className="flex flex-wrap gap-4 mt-6">
           {RemoteUser && isHost && !called && (

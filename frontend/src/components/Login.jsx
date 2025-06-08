@@ -10,6 +10,8 @@ export default function Login() {
   const { setAuthUser } = useAuthContext();
   const [showPassword, setShowPassword] = useState(false);
 
+  const baseURL = import.meta.env.MODE === "development" ? 'http://localhost:5000' : "/";
+
   // Auto-dismiss error after 5 seconds
   useEffect(() => {
     if (error) {
@@ -21,7 +23,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${baseURL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

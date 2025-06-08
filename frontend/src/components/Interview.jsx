@@ -11,6 +11,7 @@ const Interview = () => {
   const { authUser } = useAuthContext();
   const [remoteUser, setRemoteUser] = useState(null);
   const [remoteSocketId, setRemoteSocketId] = useState(null);
+  const [leftWidth, setLeftWidth] = useState(null);
 
   const leftRef = useRef(null);
   const dividerRef = useRef(null);
@@ -52,6 +53,7 @@ const Interview = () => {
       const maxWidth = containerRect.width - minWidth;
       if (newLeftWidth > minWidth && newLeftWidth < maxWidth) {
         left.style.width = `${newLeftWidth}px`;
+        setLeftWidth(newLeftWidth);
       }
     };
 
@@ -72,7 +74,7 @@ const Interview = () => {
       className="flex  bg-gray-900 text-white overflow-hidden"
     >
       <div ref={leftRef} className="w-1/2 min-w-[200px] overflow-auto">
-        <Meet remoteSocketId={remoteSocketId} RemoteUser={remoteUser}  setRemoteSocketId = {setRemoteSocketId}  setRemoteUser = {setRemoteUser} />
+        <Meet leftWidth = {leftWidth} remoteSocketId={remoteSocketId} RemoteUser={remoteUser}  setRemoteSocketId = {setRemoteSocketId}  setRemoteUser = {setRemoteUser} />
       </div>
 
       {/* Divider */}

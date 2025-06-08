@@ -18,10 +18,11 @@ export const useSocket = () => {
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const { authUser } = useAuthContext(); 
+  const baseURL = import.meta.env.MODE === "development" ? 'http://localhost:5000' : "/";
 
   useEffect(() => {
 		if (authUser) {
-			const socket = io("http://localhost:5000", {
+			const socket = io(`${baseURL}`, {
 				withCredentials : true
 			});
 

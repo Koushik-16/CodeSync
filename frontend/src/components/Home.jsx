@@ -11,6 +11,8 @@ const Home = () => {
   const [error, setError] = useState('');
   const { socket } = useSocket();
 
+  const baseURL = import.meta.env.MODE === "development" ? 'http://localhost:5000' : "/";
+
 
   useEffect(() => {
     if (error) {
@@ -24,7 +26,7 @@ const Home = () => {
     setError(''); // Clear previous error
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/interview/sessions',
+        `${baseURL}/api/interview/sessions`,
         {},
         { withCredentials: true }
       );
@@ -45,7 +47,7 @@ const Home = () => {
     setError(''); // Clear previous error
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/interview/sessions/${sessionCode}`,
+        `${baseURL}/api/interview/sessions/${sessionCode}`,
         { sessionCode },
         { withCredentials: true }
       );
