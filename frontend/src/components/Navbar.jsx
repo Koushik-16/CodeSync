@@ -28,7 +28,7 @@ const Navbar = () => {
         {authUser && (
           <div className="hidden md:flex space-x-6 items-center">
             <Link to="/" className="hover:text-blue-400 transition">Home</Link>
-            <Link to="/profile" className="hover:text-blue-400 transition">Profile</Link>
+            {/* <Link to="/profile" className="hover:text-blue-400 transition">Profile</Link> */}
             <button
               onClick={handleLogout}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg transition"
@@ -59,7 +59,7 @@ const Navbar = () => {
       {authUser && isOpen && (
         <div className="md:hidden px-4 pb-4 space-y-2">
           <Link to="/" className="block hover:text-blue-400 transition">Home</Link>
-          <Link to="/profile" className="block hover:text-blue-400 transition">Profile</Link>
+          {/* <Link to="/profile" className="block hover:text-blue-400 transition">Profile</Link> */}
           <button
             onClick={handleLogout}
             className="block w-full text-left bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
