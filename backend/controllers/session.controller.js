@@ -78,9 +78,22 @@ export const joinSession = async(req , res) => {
 
 export const endInterview = async(req , res) => {
     const { sessionCode } = req.body;
-    
-    
+    try {
+        // Check if the session exists
+        // console.log(sessionCode);
+        const session = await Session.findOne({ sessionCode });
+        if (!session) return res.status(404).json({ error: 'Session not found' });
 
+        // Remove the session
+        await Session.deleteOne({ sessionCode });
+        const result = await CodeSnippet.deleteOne({
+      sessionId: session._id,
+    });
+        res.json({ success: true, message: 'Session ended successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+        console.error('Error ending session:', err);
+    }
 }
 
 

@@ -209,6 +209,48 @@ socket.on('clear-code', async ({ sessionId }) => {
   });
 
 
+     socket.on('user-call', ({ offer , to }) => {
+      console.log("User call to", to);
+    io.to(to).emit('incomming-call', { from: socket.id, offer });
+  });
+  
+
+  socket.on("call-accepted", ({ ans , to }) => {
+    io.to(to).emit("call-accepted", { from: socket.id, ans });
+  });
+
+
+  socket.on("peer-nego-needed", ({ offer, to }) => {
+    io.to(to).emit("peer-nego-needed", { from: socket.id, offer });
+  });
+
+
+  socket.on("peer-nego-final", ({ offer, to }) => {
+    io.to(to).emit("peer-nego-final", { from: socket.id, offer });
+  });
+
+
+  socket.on('session-ended', ({ code }) => {
+    // Notify all participants in the room
+    io.to(code).emit('session-ended');
+    // Optionally remove everyone from the room manually
+    io.socketsLeave(code);
+    
+  });
+
+
+  socket.on('user-left' , async ({ code , user }) => { 
+    console.log(user._id);
+    // Optionally remove the user from the session participants
+   await Session.findOneAndUpdate({ sessionCode: code }, { $pull: { participants: user._id } })
+      .catch(err => console.error(`Error removing user from session: ${err}`));
+      socket.broadcast.to(code).emit('user-left', { user });
+      socket.leave(code);
+  });
+
+
+
+
     /**
      * Disconnect Logic
      */
