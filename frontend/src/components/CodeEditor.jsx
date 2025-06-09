@@ -178,6 +178,11 @@ useEffect(() => {
   useEffect(() => {
     if (!socket || !editorReady || !authUser || !sessionId) return;
 
+    if (ydocRef.current && monacoBindingRef.current) {
+    console.warn("Yjs and Monaco already initialized.");
+    return;
+  }
+
     const editor = editorRef.current;
     if (!editor) return;
 
@@ -208,12 +213,14 @@ socket.emit('get-language', { sessionId }, (languageFromServer) => {
       if (model) model.setValue(yText.toString());
 
       // 4. Bind Monaco <-> Yjs
+      if (!monacoBindingRef.current) {
       monacoBindingRef.current = new MonacoBinding(
         yText,
         model,
         new Set([editor]),
         null
       );
+    }
     };
     socket.once('yjs-update', handleInitialDoc);
 
@@ -245,6 +252,9 @@ socket.emit('get-language', { sessionId }, (languageFromServer) => {
         monacoBindingRef.current.destroy();
         monacoBindingRef.current = null;
       }
+
+      ydocRef.current = null;
+    yTextRef.current = null;
     };
   }, [socket, editorReady, authUser, sessionId]);
 

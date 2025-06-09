@@ -21,7 +21,7 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
   const [remoteOffer, setRemoteOffer] = useState(null);
   const [streamsSent, setStreamsSent] = useState(false);
   const [called, setCalled] = useState(false);
-
+  const screenWidth = window.innerWidth;
   
 
 

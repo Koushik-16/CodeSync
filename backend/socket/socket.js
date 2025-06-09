@@ -204,7 +204,7 @@ socket.on('clear-code', async ({ sessionId }) => {
 
 
   socket.on("code-output" , ({ sessionId, output , hasError }) => {
-   console.log(hasError, "hasError");
+   //console.log(hasError, "hasError");
       socket.to(sessionId).emit("code-output", { output , hasError});
   });
 
