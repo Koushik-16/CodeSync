@@ -19,7 +19,7 @@ const Interview = () => {
 
   useEffect(() => {
     if (!socket) return;
-    socket.on('user-connected', ({ remoteUser, remoteSocketId }) => {
+    socket.on('user-connected', ({ remoteUser, remoteSocketId , isHost }) => {
       setRemoteUser(remoteUser);
       setRemoteSocketId(remoteSocketId);
     });
@@ -74,7 +74,7 @@ const Interview = () => {
       className="flex  bg-gray-900 text-white overflow-hidden"
     >
       <div ref={leftRef} className="w-1/2 min-w-[200px] overflow-auto">
-        <Meet leftWidth = {leftWidth} remoteSocketId={remoteSocketId} RemoteUser={remoteUser}  setRemoteSocketId = {setRemoteSocketId}  setRemoteUser = {setRemoteUser} />
+        <Meet leftWidth = {leftWidth} remoteSocketId={remoteSocketId} RemoteUser={remoteUser}  setRemoteSocketId = {setRemoteSocketId}  setRemoteUser = {setRemoteUser}  />
       </div>
 
       {/* Divider */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, use } from 'react';
 import { useRef } from 'react';
 import { useSocket } from '../context/Socket';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
@@ -7,12 +7,12 @@ import peer from '../service/peer';
 import axios from 'axios';
 import { useAuthContext } from '../context/AuthContext';
 
-const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId , leftWidth}) => {
+const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId , leftWidth }) => {
   const { socket } = useSocket();
   const {   code } = useParams();
   const { authUser } = useAuthContext();
   const location = useLocation();
-  const isHost = location.state?.isHost || false;
+  const[isHost , setIsHost] = useState(location.state?.isHost || false);
   const navigate = useNavigate();
   const [sessionCode , setSessionCode] = useState(code);
   const [myStream, setMyStream] = useState(null);
@@ -71,6 +71,13 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
   const handleNegoFinal = useCallback(async ({ from, offer }) => {
     await peer.setLocalDescription(offer);
   }, []);
+
+  useEffect(() => {
+      if(socket) {
+        socket.on("host-joined" , () => setIsHost(true));
+      }
+
+  }, [socket , isHost]);
 
   useEffect(() => {
     if (socket && sessionCode && authUser) {

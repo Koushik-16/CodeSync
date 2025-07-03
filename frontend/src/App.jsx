@@ -7,10 +7,12 @@ import Navbar from './components/Navbar'
 import { useAuthContext } from './context/AuthContext'
 import Signup from './components/Signup'
 import Interview from './components/Interview'
+import { useSocket } from './context/Socket'
 
 function App() {
 	const auth = useAuthContext();
   const authUser = auth?.authUser;
+
 	return (
 		<div>
 		 <Navbar />

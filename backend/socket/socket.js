@@ -47,27 +47,33 @@ const initializeSocket = (server) => {
         }
 
 
+         const host = await User.findById(session.host).select('-password');
+         const myId = authUser._id.toString();
+
+        if(myId == host._id.toString()) {
+          socket.emit("host-joined");
+        }
 
         const socketsInRoom = await io.in(sessionId).fetchSockets();
-         if(socketsInRoom.length === 2) {
 
-       const host = await User.findById(session.host)
+
+         if(socketsInRoom.length === 2) {
+        
+          
+      
       // console.log("Host User", host._id.toString());
-       const otherId = session.participants.filter((id) => id !== session.host.toString());
+       const otherId = session.participants.filter((id) => id !== myId);
+  
        const otherUser = await User.findById(otherId).select('-password');
       //console.log("Other User", otherUser);
     
     //  console.log("Sockets in room:", socketsInRoom.map(s => s.id));
       const otherSocket = socketsInRoom.find(s => s.id !== socket.id);
-    
-       if(authUser._id.toString() === host._id.toString()) {
-        socket.broadcast.to(sessionId).emit("user-connected" , {remoteUser : host.username ,  remoteSocketId : socket.id});
-        socket.emit("user-connected" , {remoteUser :otherUser.username  , remoteSocketId : otherSocket?.id});
-       }else {
-       
-       socket.broadcast.to(sessionId).emit("user-connected" , {remoteUser : otherUser.username ,  remoteSocketId : socket.id});
-       socket.emit("user-connected" , {remoteUser :host.username  , remoteSocketId : otherSocket?.id});
-       }
+        //console.log(authUser);
+
+        socket.broadcast.to(sessionId).emit("user-connected" , {remoteUser : authUser.name ,  remoteSocketId : socket.id});
+        socket.emit("user-connected" , {remoteUser :otherUser.username  , remoteSocketId : otherSocket?.id });
+        
 
        }
 
