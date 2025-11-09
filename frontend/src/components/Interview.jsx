@@ -19,12 +19,17 @@ const Interview = () => {
 
   useEffect(() => {
     if (!socket) return;
-    socket.on('user-connected', ({ remoteUser, remoteSocketId , isHost }) => {
+    
+    const handleUserConnected = ({ remoteUser, remoteSocketId }) => {
+      console.log(`👥 User connected: ${remoteUser}, Socket: ${remoteSocketId}`);
       setRemoteUser(remoteUser);
       setRemoteSocketId(remoteSocketId);
-    });
+    };
+    
+    socket.on('user-connected', handleUserConnected);
+    
     return () => {
-      socket.off('user-connected');
+      socket.off('user-connected', handleUserConnected);
     };
   }, [socket]);
 

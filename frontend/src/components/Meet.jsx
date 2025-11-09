@@ -1,8 +1,6 @@
-import React, { useEffect, useCallback, useState, use } from 'react';
-import { useRef } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import { useSocket } from '../context/Socket';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import ReactPlayer from 'react-player';
 import peer from '../service/peer';
 import axios from 'axios';
 import { useAuthContext } from '../context/AuthContext';
@@ -23,6 +21,10 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
   const [called, setCalled] = useState(false);
   const screenWidth = window.innerWidth;
   
+  // Refs for video elements
+  const myVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  
 
 
   const baseURL = import.meta.env.MODE === "development" ? 'http://localhost:5000/' : "/";
@@ -39,6 +41,7 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
   const handleAcceptCall = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
     setMyStream(stream);
+
     const ans = await peer.getAnswer(remoteOffer);
     socket.emit('call-accepted', { ans, to: remoteSocketId });
     setIncommingCall(false);
@@ -81,6 +84,7 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
 
   useEffect(() => {
     if (socket && sessionCode && authUser) {
+      console.log(`🔌 Emitting joinSession: ${sessionCode}, User: ${authUser.name}`);
       socket.emit('joinSession', {
         code: sessionCode,
         authUser,
@@ -125,6 +129,19 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
     peer.peer.addEventListener('track', handleTrack);
     return () => peer.peer.removeEventListener('track', handleTrack);
   }, []);
+
+  // Update video elements when streams change
+  useEffect(() => {
+    if (myVideoRef.current && myStream) {
+      myVideoRef.current.srcObject = myStream;
+    }
+  }, [myStream]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
 
 
   useEffect(() => {
@@ -197,14 +214,13 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
   {myStream && (
     <div className="flex-1 bg-gray-700 p-4 rounded">
       <h3 className="text-lg mb-2">My Stream</h3>
-      <div className="relative w-full aspect-video">
-        <ReactPlayer
-          playing
+      <div className="relative w-full aspect-video bg-black rounded overflow-hidden">
+        <video
+          ref={myVideoRef}
+          autoPlay
           muted
-          url={myStream}
-          width="100%"
-          height="100%"
-          style={{ position: 'absolute', top: 0, left: 0 }}
+          playsInline
+          className="w-full h-full object-cover"
         />
       </div>
     </div>
@@ -213,13 +229,12 @@ const Meet = ({ RemoteUser, remoteSocketId  , setRemoteUser , setRemoteSocketId 
   {remoteStream && (
     <div className="flex-1 bg-gray-700 p-4 rounded">
       <h3 className="text-lg mb-2">Remote Stream</h3>
-      <div className="relative w-full aspect-video">
-        <ReactPlayer
-          playing
-          url={remoteStream}
-          width="100%"
-          height="100%"
-          style={{ position: 'absolute', top: 0, left: 0 }}
+      <div className="relative w-full aspect-video bg-black rounded overflow-hidden">
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          className="w-full h-full object-cover"
         />
       </div>
     </div>
