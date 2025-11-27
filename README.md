@@ -236,7 +236,7 @@ MIT License
 
 ## 👥 Authors
 
-- Your Name
+- Koushik Dandapat
 
 ## 🙏 Acknowledgments
 
